@@ -1,3 +1,10 @@
+fetch("http://localhost:5678/api/works")
+.then(response => response.json())
+.then(data => console.log(data))    
+.catch(error => console.error(error));
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
     const modalTrigger = document.querySelector('.modal-trigger');
     const modalContainer = document.querySelector('.modal-container');
