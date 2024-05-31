@@ -368,12 +368,16 @@ footer nav ul {
     margin: 10px;
 }
 
-.delete-icon {
-    position: absolute;
-    top: 5px; /* Ajustez cette valeur selon vos besoins */
-    right: 5px; /* Ajustez cette valeur selon vos besoins */
-    color: rgb(0, 0, 0); /* Couleur de l'icône de poubelle */
-    cursor: pointer; /* Curseur de la souris */
+.fa-trash {
+    /* position: absolute; */
+    position: relative;
+    left: 70px;
+    bottom: 130px;
+    margin-top: 7px;
+    background-color: white;
+    border: 3px solid white;
+    color: rgb(0, 0, 0); 
+    cursor: pointer; 
 }
 
 /* Styles CSS pour la deuxième modale (formulaire d'ajout de photo) */
@@ -431,6 +435,10 @@ footer nav ul {
     background-color: #0056b3;
 }
 
+#ajoutPhotoBtn{
+    background-color: #1D6154;
+}
+
 /* Style pour l'élément <input type="file"> */
 #photoFile {
     width: 300px; /* Largeur souhaitée */
@@ -482,7 +490,7 @@ form #submitPhotoBtn {
     margin-top: 20px; /* Espacement en haut */
     margin-bottom: 20px; /* Espacement en bas */
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: #1D6154;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -492,5 +500,5 @@ form #submitPhotoBtn {
 
 /* Style lorsque le bouton Valider est survolé */
 form #submitPhotoBtn:hover {
-    background-color: #0056b3;
+    background-color: #1D6154;
 }

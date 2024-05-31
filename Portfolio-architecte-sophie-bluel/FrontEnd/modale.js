@@ -1,175 +1,251 @@
-fetch("http://localhost:5678/api/works")
-.then(response => response.json())
-.then(data => console.log(data))    
-.catch(error => console.error(error));
+// Récupérer les projets
+async function getProjects() {
+    try {
+        const response = await fetch("http://localhost:5678/api/works");
+        const projects = await response.json();
+        return projects;
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+        return [];
+    }
+}
 
+// Récupérer les catégories
+async function getCategories() {
+    try {
+        const response = await fetch("http://localhost:5678/api/categories");
+        const categories = await response.json();
+        return categories;
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+    }
+}
 
+// Nettoyer une zone spécifique
+function clearArea(area) {
+    if (area) {
+        area.innerHTML = "";
+    }
+}
 
-document.addEventListener('DOMContentLoaded', function () {
-    const modalTrigger = document.querySelector('.modal-trigger');
-    const modalContainer = document.querySelector('.modal-container');
-    const closeModalBtn = document.querySelector('.close-modal');
-    const modalContent = document.querySelector('.modal-content');
-    const addPhotoBtn = document.querySelector('.add-photo-btn');
-    const secondModalContainer = document.querySelector('.second-modal-container');
-    const secondCloseModalBtn = secondModalContainer.querySelector('.close-modal');
-    const secondSubmitPhotoBtn = secondModalContainer.querySelector('#submitPhotoBtn');
-    const galleryElement = document.querySelector('.gallery');
-    const filterButtons = document.querySelectorAll('.filtre-button > div');
+// Afficher les projets
+function renderProjects(projects) {
+    const gallery = document.querySelector(".gallery");
+    if (gallery) {
+        clearArea(gallery);
+        projects.forEach(project => {
+            const figure = document.createElement("figure");
+            figure.classList.add(`category-${project.category.id}`);
+            figure.dataset.id = project.id;
 
-    // Tableau des objets images
-    let images = [
-        { src: 'assets/images/abajour-tahina.png', alt: 'Abajour Tahina', caption: 'Abajour Tahina', category: 'objets' },
-        { src: 'assets/images/appartement-paris-v.png', alt: 'Appartement Paris V', caption: 'Appartement Paris V', category: 'appartements' },
-        { src: 'assets/images/restaurant-sushisen-londres.png', alt: 'Restaurant Sushisen - Londres', caption: 'Restaurant Sushisen - Londres', category: 'hotel' },
-        { src: 'assets/images/la-balisiere.png', alt: 'Villa La Balisiere - Port Louis', caption: 'Villa La Balisiere', category: 'appartements' },
-        { src: 'assets/images/structures-thermopolis.png', alt: 'Structures Thermopolis', caption: 'Structures Thermopolis', category: 'objets' },
-        { src: 'assets/images/appartement-paris-x.png', alt: 'Appartement Paris X', caption: 'Appartement Paris X', category: 'appartements' },
-        { src: 'assets/images/le-coteau-cassis.png', alt: 'Pavillon Le coteau', caption: 'Pavillon Le coteau', category: 'hotel' },
-        { src: 'assets/images/villa-ferneze.png', alt: 'Villa Ferneze - Isola d’Elba', caption: 'Villa Ferneze - Isola d’Elba', category: 'appartements' },
-        { src: 'assets/images/appartement-paris-xviii.png', alt: 'Appartement Paris XVIII', caption: 'Appartement Paris XVIII', category: 'appartements' },
-        { src: 'assets/images/bar-lullaby-paris.png', alt: 'Bar Lullaby - Paris', caption: 'Bar “Lullaby” - Paris', category: 'hotel' },
-        { src: 'assets/images/hotel-first-arte-new-delhi.png', alt: 'Hotel First Arte - New Delhi', caption: 'Hotel First Arte - New Delhi', category: 'hotel' },
-        // Ajoutez le reste de vos images avec leurs catégories correspondantes
-    ];
+            const img = document.createElement("img");
+            img.src = project.imageUrl;
 
-    // Fonction pour mettre à jour la galerie en fonction de la catégorie sélectionnée
-    function updateGallery(category) {
-        galleryElement.innerHTML = ''; // Efface la galerie existante
+            const caption = document.createElement("figcaption");
+            caption.innerText = project.title;
 
-        images.forEach(image => {
-            if (category === 'tous' || image.category === category) {
-                const figureElement = document.createElement('figure');
-                const imgElement = document.createElement('img');
-                imgElement.src = image.src;
-                imgElement.alt = image.alt;
+            figure.appendChild(img);
+            figure.appendChild(caption);
+            gallery.appendChild(figure);
+        });
+    }
+}
 
-                const figcaptionElement = document.createElement('figcaption');
-                figcaptionElement.textContent = image.caption; // Utiliser le texte de la légende
+// Mettre en place les filtres
+function setupFilters(projects) {
+    const filterAll = document.getElementById('tous');
+    const filterObjects = document.getElementById('objets');
+    const filterApartments = document.getElementById('appartements');
+    const filterHotels = document.getElementById('hotel');
 
-                figureElement.appendChild(imgElement);
-                figureElement.appendChild(figcaptionElement);
-
-                galleryElement.appendChild(figureElement);
-            }
+    if (filterAll) {
+        filterAll.addEventListener('click', (event) => {
+            event.preventDefault();
+            filterProjects('Tous', projects);
         });
     }
 
-    // Écouteurs d'événements pour les boutons de catégorie
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function (event) {
-            event.preventDefault(); // Empêcher le comportement par défaut du lien
-            // Mettre à jour la classe active pour les boutons de filtre
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            const category = button.id;
-            updateGallery(category);
+    if (filterObjects) {
+        filterObjects.addEventListener('click', (event) => {
+            event.preventDefault();
+            filterProjectsByCategoryName('Objets', projects);
         });
-    });
+    }
 
-    // Fonction pour afficher les images dans la galerie principale
-    function displayImages() {
-        modalContent.innerHTML = ''; // Effacer le contenu précédent
+    if (filterApartments) {
+        filterApartments.addEventListener('click', (event) => {
+            event.preventDefault();
+            filterProjectsByCategoryName('Appartements', projects);
+        });
+    }
 
-        images.forEach(function (image) {
-            const imgContainer = document.createElement('div');
-            imgContainer.classList.add('image-container');
+    if (filterHotels) {
+        filterHotels.addEventListener('click', (event) => {
+            event.preventDefault();
+            filterProjectsByCategoryName('Hotels & restaurants', projects);
+        });
+    }
+}
 
-            const img = document.createElement('img');
-            img.src = image.src;
-            img.alt = image.alt;
+// Filtrer les projets par ID de catégorie ou montrer tous les projets
+function filterProjects(categoryId, projects) {
+    const filteredProjects = categoryId === 'Tous' ? projects : projects.filter(project => project.category.id === categoryId);
+    renderProjects(filteredProjects);
+}
 
-            const deleteIcon = document.createElement('i');
-            deleteIcon.classList.add('fas', 'fa-trash-alt', 'delete-icon');
-            deleteIcon.addEventListener('click', function () {
-                imgContainer.remove();
-                images = images.filter(img => img !== image);
-                updateGallery('tous'); // Mettre à jour la galerie après suppression
+// Filtrer les projets par nom de catégorie
+function filterProjectsByCategoryName(categoryName, projects) {
+    const category = projects.find(project => project.category.name === categoryName);
+    if (category) {
+        filterProjects(category.category.id, projects);
+    } else {
+        console.error(`Category "${categoryName}" not found`);
+    }
+}
 
-                // Mettre à jour les données dans le localStorage après la suppression
-                saveImagesToLocalStorage();
-            });
+// Afficher la première modale
+const modalTrigger = document.querySelector('.modal-trigger');
+const modalContainer = document.querySelector('.modal-container');
+const closeModalBtn = document.querySelector('.close-modal');
+const addPhotoBtn = document.querySelector('.add-photo-btn');
+const secondModalContainer = document.querySelector('.second-modal-container');
+const secondCloseModalBtn = document.querySelector('.second-modal-container .close-modal');
+
+modalTrigger.addEventListener('click', async function () {
+    modalContainer.style.display = 'block';
+    const projects = await getProjects();
+    displayModalImages(projects);
+    setupDeleteIcons(); // Associer les gestionnaires d'événements après l'affichage des images
+});
+
+closeModalBtn.addEventListener('click', function () {
+    modalContainer.style.display = 'none';
+});
+
+modalContainer.addEventListener('click', function (event) {
+    if (event.target === modalContainer) {
+        modalContainer.style.display = 'none';
+    }
+});
+
+addPhotoBtn.addEventListener('click', function () {
+    modalContainer.style.display = 'none';
+    secondModalContainer.style.display = 'block';
+});
+
+secondCloseModalBtn.addEventListener('click', function () {
+    secondModalContainer.style.display = 'none';
+});
+
+// Afficher les images dans la modale
+function displayModalImages(projects) {
+    const modalContent = document.querySelector('.modal .modal-content');
+    if (modalContent) {
+        clearArea(modalContent);
+        projects.forEach(project => {
+            const imgContainer = document.createElement("div");
+            imgContainer.classList.add("img-container");
+            imgContainer.dataset.imageId = project.id;
+
+            const img = document.createElement("img");
+            img.src = project.imageUrl;
+
+            const deleteIcon = document.createElement("i");
+            deleteIcon.classList.add("fa", "fa-trash");
+            deleteIcon.dataset.imageId = project.id;
 
             imgContainer.appendChild(img);
             imgContainer.appendChild(deleteIcon);
             modalContent.appendChild(imgContainer);
         });
     }
+}
 
-    // Gérer l'affichage de la première modale
-    modalTrigger.addEventListener('click', function () {
-        modalContainer.style.display = 'block';
-        displayImages();
+// Associer les gestionnaires d'événements aux icônes de suppression
+function setupDeleteIcons() {
+    const deleteIcons = document.querySelectorAll('.fa-trash');
+    deleteIcons.forEach(icon => {
+        icon.addEventListener('click', async function () {
+            const imageId = this.dataset.imageId;
+            console.log('Attempting to delete image with ID:', imageId);
+            if (imageId) {
+                await deleteWorks(imageId);
+            } else {
+                console.error('Identifiant d\'image non disponible');
+            }
+        });
     });
+}
 
-    // Fermer la première modale
-    closeModalBtn.addEventListener('click', function () {
-        modalContainer.style.display = 'none';
-    });
+// Fonction pour supprimer un projet
+async function deleteWorks(event, worksId) {
+    try {
+        let monToken = window.localStorage.getItem('token');
+        console.log("Récupération du token:", monToken); // Ajout d'un log pour vérifier le token
 
-    // Fermer la première modale en cliquant en dehors d'elle
-    modalContainer.addEventListener('click', function (event) {
-        if (event.target === modalContainer) {
-            modalContainer.style.display = 'none';
+        if (!monToken) {
+            alert("Utilisateur non authentifié. Veuillez vous connecter.");
+            return;
         }
-    });
 
-    // Afficher la deuxième modale au clic sur le bouton "Ajouter une photo"
-    addPhotoBtn.addEventListener('click', function () {
-        modalContainer.style.display = 'none'; // Cacher la première modale
-        secondModalContainer.style.display = 'block'; // Afficher la deuxième modale
-    });
+        if (confirmDelete()) {
+            console.log(`Attempting to delete image with ID: ${worksId}`); // Ajout d'un log pour vérifier l'ID
+            
+            const fetchDelete = await fetch(`http://localhost:5678/api/works/${worksId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${monToken}`,
+                },
+            });
 
-    // Fermer la deuxième modale
-    secondCloseModalBtn.addEventListener('click', function () {
-        secondModalContainer.style.display = 'none';
-    });
+            // Si suppression OK
+            if (fetchDelete.ok) {
+                console.log("Suppression réussie");
+                // Supprimer l'élément du DOM dans la modale
+                const deletedElementModal = document.querySelector(`.figure-${worksId}`);
+                if (deletedElementModal) {
+                    deletedElementModal.remove();
+                } else {
+                    console.error("Élément à supprimer non trouvé dans la modale.");
+                }
 
-    // Gérer la soumission du formulaire de la deuxième modale
-    secondSubmitPhotoBtn.addEventListener('click', function (event) {
-        event.preventDefault(); // Empêcher le comportement par défaut du formulaire (rechargement de la page)
-
-        const photoFile = document.getElementById('photoFile').files[0];
-        const photoTitle = document.getElementById('photoTitle').value;
-        const photoCategory = document.getElementById('photoCategory').value;
-
-        if (photoFile && photoTitle && photoCategory) {
-            const newImage = {
-                src: URL.createObjectURL(photoFile),
-                alt: photoTitle,
-                caption: photoTitle, // Utiliser le titre comme légende par défaut
-                category: photoCategory
-            };
-            images.push(newImage);
-
-            // Sauvegarder les images dans le localStorage
-            saveImagesToLocalStorage();
-
-            // Fermer la deuxième modale
-            secondModalContainer.style.display = 'none';
-
-            // Mettre à jour la galerie principale avec le filtre actuel
-            updateGallery(photoCategory);
-        } else {
-            alert('Veuillez remplir tous les champs du formulaire.');
+                // Mettre à jour la liste des projets dans le DOM principal
+                const projects = await getProjects();
+                renderProjects(projects);
+                alert("Projet supprimé");
+                event.preventDefault();
+            } else {
+                console.error("La suppression a échoué.");
+                console.error(`Erreur ${fetchDelete.status}: ${fetchDelete.statusText}`);
+            }
         }
-    });
-
-    // Fonction pour sauvegarder les images dans le localStorage
-    function saveImagesToLocalStorage() {
-        localStorage.setItem('images', JSON.stringify(images));
+    } catch (error) {
+        console.error("Une erreur s'est produite lors de la suppression :", error);
+        alert('Suppression impossible, une erreur est survenue');
     }
+}
 
-    // Charger les images depuis le localStorage au chargement de la page
-    function loadImagesFromLocalStorage() {
-        const storedImages = localStorage.getItem('images');
-        if (storedImages) {
-            images = JSON.parse(storedImages);
-            updateGallery('tous'); // Mettre à jour la galerie après chargement depuis le localStorage
-        }
+// Fonction de confirmation de suppression
+function confirmDelete() {
+    return confirm("Voulez-vous supprimer votre projet ?");
+}
+
+// Fonction pour restaurer le travail supprimé
+function restoreDeletedWork() {
+    if (workToDelete) {
+        // Implémentez la logique pour restaurer le travail depuis la sauvegarde temporaire
+        // Par exemple, vous pourriez réinsérer le travail dans la liste des travaux affichés.
+        workToDelete = null; // Réinitialiser la variable de sauvegarde temporaire
+    } else {
+        alert("Aucun travail à restaurer.");
     }
+}
 
-    // Initialiser la galerie avec toutes les images au chargement de la page
-    updateGallery('tous');
+// Initialisation
+document.addEventListener("DOMContentLoaded", async () => {
+    const projects = await getProjects();
+    renderProjects(projects);
+    setupFilters(projects);
 });
+
