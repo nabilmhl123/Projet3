@@ -179,9 +179,10 @@ function setupDeleteIcons() {
 }
 
 // Fonction pour supprimer un projet
-async function deleteWorks(event, worksId) {
+async function deleteWorks(worksId) {
     try {
-        let monToken = window.localStorage.getItem('token');
+        debugger
+        let monToken = window.localStorage.getItem('authToken');
         console.log("Récupération du token:", monToken); // Ajout d'un log pour vérifier le token
 
         if (!monToken) {
@@ -191,7 +192,7 @@ async function deleteWorks(event, worksId) {
 
         if (confirmDelete()) {
             console.log(`Attempting to delete image with ID: ${worksId}`); // Ajout d'un log pour vérifier l'ID
-            
+
             const fetchDelete = await fetch(`http://localhost:5678/api/works/${worksId}`, {
                 method: "DELETE",
                 headers: {
@@ -199,26 +200,6 @@ async function deleteWorks(event, worksId) {
                 },
             });
 
-            // Si suppression OK
-            if (fetchDelete.ok) {
-                console.log("Suppression réussie");
-                // Supprimer l'élément du DOM dans la modale
-                const deletedElementModal = document.querySelector(`.figure-${worksId}`);
-                if (deletedElementModal) {
-                    deletedElementModal.remove();
-                } else {
-                    console.error("Élément à supprimer non trouvé dans la modale.");
-                }
-
-                // Mettre à jour la liste des projets dans le DOM principal
-                const projects = await getProjects();
-                renderProjects(projects);
-                alert("Projet supprimé");
-                event.preventDefault();
-            } else {
-                console.error("La suppression a échoué.");
-                console.error(`Erreur ${fetchDelete.status}: ${fetchDelete.statusText}`);
-            }
         }
     } catch (error) {
         console.error("Une erreur s'est produite lors de la suppression :", error);
@@ -231,21 +212,9 @@ function confirmDelete() {
     return confirm("Voulez-vous supprimer votre projet ?");
 }
 
-// Fonction pour restaurer le travail supprimé
-function restoreDeletedWork() {
-    if (workToDelete) {
-        // Implémentez la logique pour restaurer le travail depuis la sauvegarde temporaire
-        // Par exemple, vous pourriez réinsérer le travail dans la liste des travaux affichés.
-        workToDelete = null; // Réinitialiser la variable de sauvegarde temporaire
-    } else {
-        alert("Aucun travail à restaurer.");
-    }
-}
-
 // Initialisation
 document.addEventListener("DOMContentLoaded", async () => {
     const projects = await getProjects();
     renderProjects(projects);
     setupFilters(projects);
 });
-
