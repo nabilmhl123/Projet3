@@ -222,14 +222,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // Fonction pour soumettre le formulaire
 async function createNewWork(categoryValue, file, titleValue) {
-    const token = window.localStorage.getItem('token');
+    const token = window.localStorage.getItem('authToken');
     const formData = new FormData();
+    debugger
+    console.log('Category:', categoryValue);
+        console.log('Title:', titleValue);
+        console.log('File:', file);
     formData.append('category', categoryValue);
-    formData.append('image', file.files[0]);
+    formData.append('image', file);
     formData.append('title', titleValue);
 
+    
+
+    console.log('FormData entries:', Array.from(formData.entries())); // Ajout de log pour vérifier les entrées de FormData
+
     try {
-        const response = await fetch("http://localhost:5678/api/works", {
+        const response = await fetch('http://localhost:5678/api/works', {
             method: "POST",
             headers: {
                 accept: "application/json",
@@ -238,6 +246,7 @@ async function createNewWork(categoryValue, file, titleValue) {
             body: formData,
         });
 
+        console.log('Response status:', response.status); // Log du statut de la réponse
         return response;
     } catch (error) {
         console.error("Une erreur s'est produite lors de la création du travail :", error);
@@ -251,150 +260,30 @@ function setupFormSubmission() {
     form.addEventListener('submit', async (event) => {
         event.preventDefault(); // Empêcher le comportement par défaut du formulaire
         const fileInput = document.getElementById('photoFile');
+        debugger
         const categoryInput = document.getElementById('photoCategory');
         const titleInput = document.getElementById('photoTitle');
 
         const file = fileInput.files[0];
-        const categoryValue = categoryInput.value;
-        const titleValue = titleInput.value;
+        const categoryValue = parseInt(categoryInput.value, 10);
+        const titleValue = titleInput.value.trim();
 
-        try {
-            const response = await createNewWork(categoryValue, file, titleValue);
-            if (response.ok) {
-                alert('Projet ajouté avec succès');
-                // Réinitialiser le formulaire après soumission réussie si nécessaire
-                form.reset();
-            } else {
-                throw new Error(`Erreur lors de l'ajout du projet : ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error("Une erreur s'est produite lors de l'ajout du projet :", error);
-            alert('Ajout du projet impossible, une erreur est survenue');
-        }
-    });
-}
-
-// Écouteur d'événements pour soumettre le formulaire
-function setupFormSubmission() {
-    const form = document.getElementById('secondPhotoForm');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Empêcher le comportement par défaut du formulaire
-        const fileInput = document.getElementById('photoFile');
-        const categoryInput = document.getElementById('photoCategory');
-        const titleInput = document.getElementById('photoTitle');
-
-        const file = fileInput.files[0];
-        const categoryValue = categoryInput.value;
-        const titleValue = titleInput.value;
-
-        console.log('Category:', categoryValue);
-        console.log('Title:', titleValue);
-        console.log('File:', file);
+        
 
         try {
             const response = await createNewWork(categoryValue, file, titleValue);
             console.log('Response:', response); // Log de la réponse pour le débogage
             if (response.ok) {
                 alert('Projet ajouté avec succès');
-                // Réinitialiser le formulaire après soumission réussie si nécessaire
-                form.reset();
+                form.reset(); // Réinitialiser le formulaire après soumission réussie si nécessaire
             } else {
-                throw new Error(`Erreur lors de l'ajout du projet : ${response.statusText}`);
+                const errorData = await response.json();
+                console.error(`Erreur lors de l'ajout du projet : ${response.statusText}`, errorData);
+                alert(`Ajout du projet impossible : ${response.statusText}`);
             }
         } catch (error) {
             console.error("Une erreur s'est produite lors de l'ajout du projet :", error);
             alert('Ajout du projet impossible, une erreur est survenue');
-        }
-    });
-}
-
-// Fonction pour soumettre le formulaire
-async function createNewWork(categoryValue, file, titleValue) {
-    const token = window.localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('category', categoryValue);
-    formData.append('image', file.files[0]);
-    formData.append('title', titleValue);
-
-    try {
-        const response = await fetch("http://localhost:5678/api/works", {
-            method: "POST",
-            headers: {
-                accept: "application/json",
-                Authorization: `Bearer ${token}`, // Correction de l'interpolation de chaîne ici
-            },
-            body: formData,
-        });
-
-        return response;
-    } catch (error) {
-        console.error("Une erreur s'est produite lors de la création du travail :", error);
-        throw error;
-    }
-}
-
-// Écouteur d'événements pour soumettre le formulaire
-function setupFormSubmission() {
-    const form = document.getElementById('secondPhotoForm');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Empêcher le comportement par défaut du formulaire
-        const fileInput = document.getElementById('photoFile');
-        const categoryInput = document.getElementById('photoCategory');
-        const titleInput = document.getElementById('photoTitle');
-
-        const file = fileInput.files[0];
-        const categoryValue = categoryInput.value;
-        const titleValue = titleInput.value;
-
-        console.log('Category:', categoryValue);
-        console.log('Title:', titleValue);
-        console.log('File:', file);
-
-        try {
-            const response = await createNewWork(categoryValue, file, titleValue);
-            console.log('Response:', response); // Log de la réponse pour le débogage
-            if (response.ok) {
-                alert('Projet ajouté avec succès');
-                // Réinitialiser le formulaire après soumission réussie si nécessaire
-                form.reset();
-            } else {
-                throw new Error(`Erreur lors de l'ajout du projet : ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error("Une erreur s'est produite lors de l'ajout du projet :", error);
-            alert('Ajout du projet impossible, une erreur est survenue');
-        }
-    });
-}
-
-// Fonction pour valider le fichier
-function validateFile() {
-    const fileInput = document.getElementById('file-input'); // Récupérer l'élément input de type file
-    // Ajout d'un écouteur d'événements pour détecter les changements dans le fichier sélectionné
-    fileInput.addEventListener('change', event => {
-        const file = event.target.files[0]; // Récupérer le fichier à partir de l'événement
-
-        console.log('Selected File:', file); // Log du fichier sélectionné pour le débogage
-
-        try {
-            // Validation du fichier
-            if (!file) {
-                throw new Error('Veuillez sélectionner un fichier à télécharger.');
-            }
-
-            const size = file.size / (1024 * 1024);
-            const allowedFormats = ['image/jpg', 'image/jpeg', 'image/png'];
-
-            if (size > 4 || !allowedFormats.includes(file.type)) {
-                throw new Error('Le fichier sélectionné dépasse la taille maximale autorisée (4 Mo) ou le format n\'est pas pris en charge.');
-            }
-
-            // Traiter le fichier une fois qu'il est validé
-            fileReader(file);
-        } catch (error) {
-            // Gestion des erreurs de validation
-            console.error('Erreur de validation :', error.message);
-            alert(error.message);
         }
     });
 }
@@ -406,3 +295,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupFilters(projects);
     setupFormSubmission(); // Appel de la fonction pour configurer la soumission du formulaire
 });
+
+
